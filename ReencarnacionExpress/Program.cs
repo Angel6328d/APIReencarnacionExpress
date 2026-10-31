@@ -17,7 +17,7 @@ builder.Services.AddScoped<IPersonajeService, PersonajeService>();
 builder.Services.AddScoped<IRegionService, RegionService>();
 builder.Services.AddScoped<IVestigioService, VestigioService>();
 
-// Imágenes (Supabase Storage)
+// Archivos (Supabase Storage)
 builder.Services.AddHttpClient<IArchivoService, SupabaseArchivoService>();
 
 builder.Services.AddControllers()
@@ -36,7 +36,12 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty; // Swagger en la raíz
 });
 
-app.UseHttpsRedirection();
+// Render ya maneja el HTTPS, así que solo se redirige en local
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthorization();
 app.MapControllers();
 
