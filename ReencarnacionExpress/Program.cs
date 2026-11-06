@@ -20,6 +20,20 @@ builder.Services.AddScoped<IVestigioService, VestigioService>();
 // Archivos (Supabase Storage)
 builder.Services.AddHttpClient<IArchivoService, SupabaseArchivoService>();
 
+// >>> NUEVO: CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173"
+              // , "https://tu-frontend-desplegado.com"  // agrégalo cuando lo publiques
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
@@ -41,6 +55,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+// >>> NUEVO: activar CORS (antes de UseAuthorization)
+app.UseCors("PermitirFrontend");
 
 app.UseAuthorization();
 app.MapControllers();
