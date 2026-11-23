@@ -19,6 +19,7 @@ builder.Services.AddScoped<IVestigioService, VestigioService>();
 
 // Archivos (Supabase Storage)
 builder.Services.AddHttpClient<IArchivoService, SupabaseArchivoService>();
+builder.Services.AddScoped<IMedioService, MedioService>();
 
 // >>> NUEVO: CORS
 builder.Services.AddCors(options =>

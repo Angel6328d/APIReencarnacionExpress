@@ -11,7 +11,13 @@ namespace ReencarnacionExpress.Services.Service
     {
         private readonly AppDbContext _context;
 
-        public PersonajeService(AppDbContext context) => _context = context;
+        private readonly IMedioService _medios;
+
+        public PersonajeService(AppDbContext context, IMedioService medios)
+        {
+            _context = context;
+            _medios = medios;
+        }
 
         public async Task<List<PersonajeDto>> ObtenerTodosAsync()
         {
@@ -40,6 +46,27 @@ namespace ReencarnacionExpress.Services.Service
             _context.Personajes.Add(p);
             await _context.SaveChangesAsync();
             return p.ToDto();
+        }
+
+        public async Task<PersonajeDto?> ActualizarAsync(int id, GuardarPersonajeDto dto)
+        {
+            var x = await _context.Personajes.FindAsync(id);
+            if (x is null) return null;
+
+            x.Aplicar(dto);
+            await _context.SaveChangesAsync();
+            return await ObtenerPorIdAsync(id);
+        }
+
+        public async Task<bool> EliminarAsync(int id)
+        {
+            var x = await _context.Personajes.FindAsync(id);
+            if (x is null) return false;
+
+            _context.Personajes.Remove(x);
+            await _context.SaveChangesAsync();
+            await _medios.EliminarDeEntidadAsync(TipoEntidad.Personaje, id);   // sus imágenes/videos también
+            return true;
         }
 
         private IQueryable<Medio> MediosDePersonajes() =>

@@ -29,5 +29,17 @@ namespace ReencarnacionExpress.Controllers
             var creado = await _service.CrearAsync(dto);
             return CreatedAtAction(nameof(Get), new { id = creado.Id }, creado);
         }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<VestigioDto>> Put(int id, GuardarVestigioDto dto)
+        {
+            var actualizado = await _service.ActualizarAsync(id, dto);
+            return actualizado is null ? NotFound() : Ok(actualizado);
+        }
+
+        /// <summary>Elimina el registro junto con sus imágenes/videos.</summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id) =>
+            await _service.EliminarAsync(id) ? NoContent() : NotFound();
     }
 }

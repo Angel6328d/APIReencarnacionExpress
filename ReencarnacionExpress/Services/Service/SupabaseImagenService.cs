@@ -59,6 +59,16 @@ namespace ReencarnacionExpress.Services.Service
             return new ArchivoSubido($"{_url}/storage/v1/object/public/{_bucket}/{ruta}", ruta);
         }
 
+        public async Task EliminarAsync(string ruta)
+        {
+            if (string.IsNullOrWhiteSpace(ruta)) return;
+
+            using var request = Crear(HttpMethod.Delete, ruta);
+            // Si falla (p. ej. el archivo ya no existe) no se interrumpe el borrado en la BD
+            try { await _http.SendAsync(request); }
+            catch (HttpRequestException) { }
+        }
+
         private HttpRequestMessage Crear(HttpMethod metodo, string ruta)
         {
             var request = new HttpRequestMessage(metodo, $"{_url}/storage/v1/object/{_bucket}/{ruta}");
