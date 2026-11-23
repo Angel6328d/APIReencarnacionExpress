@@ -48,6 +48,33 @@ namespace ReencarnacionExpress.Controllers
         public Task<IActionResult> SubirImagen(TipoEntidad entidad, int id, IFormFile archivo) =>
             Subir(entidad, id, archivo, TipoMedio.Imagen);
 
+        [HttpPost("{entidad}/{id:int}/icono")]
+        public Task<IActionResult> SubirIcono(TipoEntidad entidad, int id, IFormFile archivo) =>
+            Subir(entidad, id, archivo, TipoMedio.Icono);
+
+        /// <summary>Cambia el tipo (Imagen/Video/Icono) y/o el orden de un medio existente.</summary>
+        [HttpPatch("{medioId:int}")]
+        public async Task<ActionResult<MedioDto>> Actualizar(int medioId, ActualizarMedioDto dto)
+        {
+            var medio = await _context.Medios.FindAsync(medioId);
+            if (medio is null) return NotFound($"No existe el medio con id {medioId}.");
+
+            if (dto.Tipo is { } tipo) medio.Tipo = tipo;
+            if (dto.Orden is { } orden) medio.Orden = orden;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new MedioDto
+            {
+                Id = medio.Id,
+                Entidad = medio.Entidad,
+                EntidadId = medio.EntidadId,
+                Tipo = medio.Tipo,
+                Url = medio.Url,
+                Orden = medio.Orden
+            });
+        }
+
         [HttpPost("{entidad}/{id:int}/video")]
         [RequestSizeLimit(LimiteVideo)]
         [RequestFormLimits(MultipartBodyLengthLimit = LimiteVideo)]

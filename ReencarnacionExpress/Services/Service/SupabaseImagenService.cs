@@ -29,8 +29,10 @@ namespace ReencarnacionExpress.Services.Service
 
         public async Task<ArchivoSubido> SubirAsync(IFormFile archivo, string carpeta, TipoMedio tipo)
         {
-            var permitidos = tipo == TipoMedio.Imagen ? ImagenesPermitidas : VideosPermitidos;
-            var maximo = tipo == TipoMedio.Imagen ? MaxImagen : MaxVideo;
+            // Imagen e Icono aceptan los mismos formatos; solo Video es distinto
+            var esVideo = tipo == TipoMedio.Video;
+            var permitidos = esVideo ? VideosPermitidos : ImagenesPermitidas;
+            var maximo = esVideo ? MaxVideo : MaxImagen;
 
             if (archivo.Length == 0 || archivo.Length > maximo)
                 throw new ArgumentException($"El archivo debe pesar entre 1 byte y {maximo / 1024 / 1024} MB.");
