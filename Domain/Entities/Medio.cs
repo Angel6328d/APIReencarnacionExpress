@@ -22,7 +22,8 @@
 
     public enum TipoMedio
     {
-        Imagen,
-        Video
+        Imagen = 0,
+        Video = 1,
+        Icono = 2   // miniatura / retrato pequeño (mismos formatos que Imagen)
     }
 }

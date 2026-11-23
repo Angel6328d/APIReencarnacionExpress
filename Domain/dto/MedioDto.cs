@@ -11,4 +11,11 @@ namespace Domain.dto
         public string Url { get; set; } = "";
         public int Orden { get; set; }
     }
+
+    /// <summary>Campos editables de un medio. Los que vengan en null no se tocan.</summary>
+    public class ActualizarMedioDto
+    {
+        public TipoMedio? Tipo { get; set; }
+        public int? Orden { get; set; }
+    }
 }

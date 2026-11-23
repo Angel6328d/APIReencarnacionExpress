@@ -7,5 +7,7 @@ namespace ReencarnacionExpress.Services.Interfaz
         Task<List<HistoriaDto>> ObtenerTodosAsync();
         Task<HistoriaDto?> ObtenerPorIdAsync(int id);
         Task<HistoriaDto> CrearAsync(GuardarHistoriaDto dto);
+        Task<HistoriaDto?> ActualizarAsync(int id, GuardarHistoriaDto dto);
+        Task<bool> EliminarAsync(int id);
     }
 }

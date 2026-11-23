@@ -15,11 +15,13 @@ namespace ReencarnacionExpress.Controllers
 
         private readonly AppDbContext _context;
         private readonly IArchivoService _archivos;
+        private readonly IMedioService _medios;
 
-        public MediosController(AppDbContext context, IArchivoService archivos)
+        public MediosController(AppDbContext context, IArchivoService archivos, IMedioService medios)
         {
             _context = context;
             _archivos = archivos;
+            _medios = medios;
         }
 
         /// <summary>Lista las imágenes y videos de una entidad (ordenados).</summary>
@@ -47,6 +49,80 @@ namespace ReencarnacionExpress.Controllers
         [HttpPost("{entidad}/{id:int}/imagen")]
         public Task<IActionResult> SubirImagen(TipoEntidad entidad, int id, IFormFile archivo) =>
             Subir(entidad, id, archivo, TipoMedio.Imagen);
+
+        [HttpPost("{entidad}/{id:int}/icono")]
+        public Task<IActionResult> SubirIcono(TipoEntidad entidad, int id, IFormFile archivo) =>
+            Subir(entidad, id, archivo, TipoMedio.Icono);
+
+        /// <summary>Cambia el tipo (Imagen/Video/Icono) y/o el orden de un medio existente.</summary>
+        [HttpPatch("{medioId:int}")]
+        public async Task<ActionResult<MedioDto>> Actualizar(int medioId, ActualizarMedioDto dto)
+        {
+            var medio = await _context.Medios.FindAsync(medioId);
+            if (medio is null) return NotFound($"No existe el medio con id {medioId}.");
+
+            if (dto.Tipo is { } tipo) medio.Tipo = tipo;
+            if (dto.Orden is { } orden) medio.Orden = orden;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new MedioDto
+            {
+                Id = medio.Id,
+                Entidad = medio.Entidad,
+                EntidadId = medio.EntidadId,
+                Tipo = medio.Tipo,
+                Url = medio.Url,
+                Orden = medio.Orden
+            });
+        }
+
+        /// <summary>Reemplaza el archivo de un medio (sube el nuevo y borra el anterior del bucket).</summary>
+        [HttpPut("{medioId:int}/archivo")]
+        [RequestSizeLimit(LimiteVideo)]
+        [RequestFormLimits(MultipartBodyLengthLimit = LimiteVideo)]
+        public async Task<ActionResult<MedioDto>> ReemplazarArchivo(int medioId, IFormFile archivo)
+        {
+            var medio = await _context.Medios.FindAsync(medioId);
+            if (medio is null) return NotFound($"No existe el medio con id {medioId}.");
+
+            ArchivoSubido subido;
+            try
+            {
+                subido = await _archivos.SubirAsync(archivo, medio.Entidad.ToString().ToLowerInvariant(), medio.Tipo);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(502, ex.Message);
+            }
+
+            var rutaAnterior = medio.Ruta;
+            medio.Url = subido.Url;
+            medio.Ruta = subido.Ruta;
+            await _context.SaveChangesAsync();
+            await _archivos.EliminarAsync(rutaAnterior);
+
+            return Ok(ADto(medio));
+        }
+
+        /// <summary>Elimina un medio (registro + archivo en Storage).</summary>
+        [HttpDelete("{medioId:int}")]
+        public async Task<IActionResult> Eliminar(int medioId) =>
+            await _medios.EliminarAsync(medioId) ? NoContent() : NotFound();
+
+        private static MedioDto ADto(Medio m) => new()
+        {
+            Id = m.Id,
+            Entidad = m.Entidad,
+            EntidadId = m.EntidadId,
+            Tipo = m.Tipo,
+            Url = m.Url,
+            Orden = m.Orden
+        };
 
         [HttpPost("{entidad}/{id:int}/video")]
         [RequestSizeLimit(LimiteVideo)]

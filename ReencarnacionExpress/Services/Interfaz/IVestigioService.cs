@@ -7,5 +7,7 @@ namespace ReencarnacionExpress.Services.Interfaz
         Task<List<VestigioDto>> ObtenerTodosAsync();
         Task<VestigioDto?> ObtenerPorIdAsync(int id);
         Task<VestigioDto> CrearAsync(GuardarVestigioDto dto);
+        Task<VestigioDto?> ActualizarAsync(int id, GuardarVestigioDto dto);
+        Task<bool> EliminarAsync(int id);
     }
 }

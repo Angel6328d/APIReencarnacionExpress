@@ -11,7 +11,13 @@ namespace ReencarnacionExpress.Services.Service
     {
         private readonly AppDbContext _context;
 
-        public VestigioService(AppDbContext context) => _context = context;
+        private readonly IMedioService _medios;
+
+        public VestigioService(AppDbContext context, IMedioService medios)
+        {
+            _context = context;
+            _medios = medios;
+        }
 
         public async Task<List<VestigioDto>> ObtenerTodosAsync() =>
             await _context.Vestigios.AsNoTracking().Select(v => v.ToDto()).ToListAsync();
@@ -29,6 +35,27 @@ namespace ReencarnacionExpress.Services.Service
             _context.Vestigios.Add(v);
             await _context.SaveChangesAsync();
             return v.ToDto();
+        }
+
+        public async Task<VestigioDto?> ActualizarAsync(int id, GuardarVestigioDto dto)
+        {
+            var x = await _context.Vestigios.FindAsync(id);
+            if (x is null) return null;
+
+            x.Aplicar(dto);
+            await _context.SaveChangesAsync();
+            return x.ToDto();
+        }
+
+        public async Task<bool> EliminarAsync(int id)
+        {
+            var x = await _context.Vestigios.FindAsync(id);
+            if (x is null) return false;
+
+            _context.Vestigios.Remove(x);
+            await _context.SaveChangesAsync();
+            await _medios.EliminarDeEntidadAsync(TipoEntidad.Vestigio, id);   // sus imágenes/videos también
+            return true;
         }
     }
 }
