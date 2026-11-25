@@ -24,7 +24,8 @@ namespace ReencarnacionExpress.Services.Service
             _http = http;
             _url = config["Supabase:Url"]!.TrimEnd('/');
             _bucket = config["Supabase:Bucket"]!;
-            _key = config["Supabase:ServiceKey"]!;
+            // Quita espacios/comillas que a veces se cuelan al pegar la clave en Render
+            _key = (config["Supabase:ServiceKey"] ?? "").Trim().Trim('"');
         }
 
         public async Task<ArchivoSubido> SubirAsync(IFormFile archivo, string carpeta, TipoMedio tipo)
@@ -72,8 +73,16 @@ namespace ReencarnacionExpress.Services.Service
         private HttpRequestMessage Crear(HttpMethod metodo, string ruta)
         {
             var request = new HttpRequestMessage(metodo, $"{_url}/storage/v1/object/{_bucket}/{ruta}");
+            if (string.IsNullOrEmpty(_key))
+                throw new InvalidOperationException(
+                    "Falta la variable de entorno Supabase__ServiceKey en el servidor.");
+
             request.Headers.Add("apikey", _key);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _key);
+            // Las claves "legacy" (service_role) son JWT y van también como Bearer.
+            // Las claves nuevas (sb_secret_...) NO son JWT: si se mandan como Bearer,
+            // Supabase responde "Invalid Compact JWS". Con esas basta el header apikey.
+            if (_key.StartsWith("eyJ"))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _key);
             return request;
         }
     }
