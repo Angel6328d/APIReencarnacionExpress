@@ -19,13 +19,25 @@ namespace ReencarnacionExpress.Services.Service
             _medios = medios;
         }
 
-        public async Task<List<EnemigoDto>> ObtenerTodosAsync() =>
-            await _context.Enemigos.AsNoTracking().Select(e => e.ToDto()).ToListAsync();
+        public async Task<List<EnemigoDto>> ObtenerTodosAsync()
+        {
+            var lista = await _context.Enemigos.AsNoTracking().OrderBy(x => x.Id).ToListAsync();
+            var medios = await MediosUrls.DeEntidadAsync(_context, TipoEntidad.Enemigo);
+            return lista.Select(x => ConMedios(x.ToDto(), medios[x.Id])).ToList();
+        }
 
         public async Task<EnemigoDto?> ObtenerPorIdAsync(int id)
         {
             var e = await _context.Enemigos.FindAsync(id);
-            return e?.ToDto();
+            if (e is null) return null;
+            var medios = await MediosUrls.DeEntidadAsync(_context, TipoEntidad.Enemigo, id);
+            return ConMedios(e.ToDto(), medios[id]);
+        }
+
+        private static EnemigoDto ConMedios(EnemigoDto dto, IEnumerable<Medio> medios)
+        {
+            (dto.ImagenUrl, dto.IconoUrl) = MediosUrls.Elegir(medios);
+            return dto;
         }
 
         public async Task<EnemigoDto> CrearAsync(GuardarEnemigoDto dto)

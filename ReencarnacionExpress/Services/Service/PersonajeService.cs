@@ -76,20 +76,8 @@ namespace ReencarnacionExpress.Services.Service
 
         private static PersonajeDto ConMedios(Personaje p, IEnumerable<Medio> medios)
         {
-            var lista = medios.ToList();
-
-            // Compatibilidad: iconos viejos guardados como "Imagen" con "Icono" en el nombre del archivo
-            static bool PareceIcono(Medio m) =>
-                m.Tipo == TipoMedio.Imagen && m.Url.Contains("icono", StringComparison.OrdinalIgnoreCase);
-
             var dto = p.ToDto();
-
-            dto.ImagenUrl = lista
-                .FirstOrDefault(m => m.Tipo == TipoMedio.Imagen && !PareceIcono(m))?.Url;
-
-            dto.IconoUrl = lista.FirstOrDefault(m => m.Tipo == TipoMedio.Icono)?.Url
-                           ?? lista.FirstOrDefault(PareceIcono)?.Url;
-
+            (dto.ImagenUrl, dto.IconoUrl) = MediosUrls.Elegir(medios);
             return dto;
         }
     }

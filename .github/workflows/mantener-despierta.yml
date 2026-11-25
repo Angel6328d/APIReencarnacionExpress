@@ -1,0 +1,17 @@
+# Hace una petición a la API cada 10 minutos para que Render (plan gratis)
+# no la ponga a dormir y la app no tenga que esperar ~1 minuto al abrir.
+name: Mantener API despierta
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping a la API
+        run: |
+          curl -s -o /dev/null -w "HTTP %{http_code} en %{time_total}s\n" --max-time 120 \
+            https://api-reencarnacion-express.onrender.com/api/Personajes || true
