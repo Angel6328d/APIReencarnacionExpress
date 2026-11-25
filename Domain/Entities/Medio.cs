@@ -17,7 +17,8 @@
         Historia,
         Personaje,
         Region,
-        Vestigio
+        Vestigio,
+        Evento      // galería de fotos del evento (no tiene tabla propia; se usa el id 1)
     }
 
     public enum TipoMedio

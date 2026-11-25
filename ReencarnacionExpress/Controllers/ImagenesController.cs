@@ -184,6 +184,7 @@ namespace ReencarnacionExpress.Controllers
             TipoEntidad.Personaje => _context.Personajes.AnyAsync(x => x.Id == id),
             TipoEntidad.Region => _context.Regiones.AnyAsync(x => x.Id == id),
             TipoEntidad.Vestigio => _context.Vestigios.AnyAsync(x => x.Id == id),
+            TipoEntidad.Evento => Task.FromResult(id > 0),   // galería del evento: no tiene tabla
             _ => Task.FromResult(false)
         };
     }
